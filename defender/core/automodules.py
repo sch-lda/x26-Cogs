@@ -253,7 +253,7 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
         #)
         past_messages = await self.make_message_log(author, guild=author.guild)
         log = "\n".join(past_messages[:40])
-        f = discord.File(BytesIO(log.encode("utf-8")), f"{author.id}-log.txt")
+        f = discord.File(BytesIO(log.encode("utf-8")), f"用户近期消息{author.id}.txt")
         await self.send_notification(guild, f"发送消息频率过高 ({seconds} 秒内 {recent} 条消息). \n"
                                      f"已尝试撤回此用户的近期消息并禁言", file=f,
                                      title=EMBED_TITLE, fields=EMBED_FIELDS, jump_to=message, no_repeat_for=timedelta(minutes=1),
