@@ -220,13 +220,6 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
             punish_message = await self.format_punish_message(author)
             if punish_role and not self.is_role_privileged(punish_role):
                 await author.add_roles(punish_role, reason="[自动]发送消息频率过高")
-                await self.send_notification(guild,
-                                        f"发送消息频率过高 ({seconds} 秒内 {recent} 条消息). \n 已尝试撤回此用户的近期消息并禁言",
-                                        title=EMBED_TITLE,
-                                        fields=EMBED_FIELDS,
-                                        jump_to=message,
-                                        no_repeat_for=timedelta(minutes=15),
-                                        ping=True, view=quick_action)
                 for i, m in enumerate(cache):
                     channel = message.guild.get_channel(m.channel_id)
                     message = await channel.fetch_message(m.id)
