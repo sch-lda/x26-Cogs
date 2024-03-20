@@ -230,7 +230,7 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
                 for i, m in enumerate(cache):
                     channel = message.guild.get_channel(m.channel_id)
                     message = await channel.fetch_message(m.id)
-                    message.delete()
+                    await message.delete()
                 if punish_message:
                     await message.channel.send(punish_message)
             else:
@@ -255,7 +255,7 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
         log = "\n".join(past_messages[:40])
         f = discord.File(BytesIO(log.encode("utf-8")), f"{author.id}-log.txt")
         await self.send_notification(guild, f"I have {ACTIONS_VERBS[action]} a user for posting {recent} "
-                                     f"messages in {minutes} minutes. Attached their last stored messages.", file=f,
+                                     f"messages in {seconds} seconds. Attached their last stored messages.", file=f,
                                      title=EMBED_TITLE, fields=EMBED_FIELDS, jump_to=message, no_repeat_for=timedelta(minutes=1),
                                      view=quick_action)
         return True
