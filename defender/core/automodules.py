@@ -174,7 +174,7 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
 
         cache = df_cache.get_user_messages(author)
 
-        max_messages = 5
+        max_messages = await self.config.guild(guild).raider_detection_messages()
         seconds = await self.config.guild(guild).raider_detection_seconds()
         x_minutes_ago = message.created_at - timedelta(seconds=seconds)
         recent = 0
