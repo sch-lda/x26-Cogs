@@ -553,8 +553,6 @@ class Defender(Commands, AutoModules, Events, commands.Cog, metaclass=CompositeM
         embed = None
         send_embed = await self.bot.embed_requested(destination)
         if send_embed is True and force_text_only is False:
-            if jump_to:
-                description += f"\n[Click to jump]({jump_to.jump_url})"
             embed = discord.Embed(
                 title=title if title else "",
                 description=description,
