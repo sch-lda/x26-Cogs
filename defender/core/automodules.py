@@ -227,6 +227,8 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
                                         jump_to=message,
                                         no_repeat_for=timedelta(minutes=15),
                                         ping=True, view=quick_action)
+                for i, m in enumerate(cache):
+                    m.delete()
                 if punish_message:
                     await message.channel.send(punish_message)
             else:
