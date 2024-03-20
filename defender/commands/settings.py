@@ -552,8 +552,8 @@ class Settings(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
     @raiderdetectiongroup.command(name="messages")
     async def raiderdetectiongroupmessages(self, ctx: commands.Context, messages: int):
         """Sets messages (User posted X messages in Y seconds)"""
-        if messages < 8 or messages > 50:
-            await ctx.send("Value must be between 8 and 50.")
+        if messages < 5 or messages > 50:
+            await ctx.send("Value must be between 5 and 50.")
             return
         await self.config.guild(ctx.guild).raider_detection_messages.set(messages)
         await ctx.tick()
