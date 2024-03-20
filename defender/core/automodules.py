@@ -167,16 +167,16 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
     async def detect_raider(self, message):
         author = message.author
         guild = author.guild
-        EMBED_TITLE = "🦹 • Raider detection"
-        EMBED_FIELDS = [{"name": "Username", "value": f"`{author}`"},
-                        {"name": "ID", "value": f"`{author.id}`"},
-                        {"name": "Channel", "value": message.channel.mention}]
+        EMBED_TITLE = "消息轰炸检测"
+        EMBED_FIELDS = [{"name": "用户名", "value": f"`{author}`"},
+                        {"name": "DiscordID", "value": f"`{author.id}`"},
+                        {"name": "频道", "value": message.channel.mention}]
 
         cache = df_cache.get_user_messages(author)
 
-        max_messages = await self.config.guild(guild).raider_detection_messages()
-        minutes = await self.config.guild(guild).raider_detection_minutes()
-        x_minutes_ago = message.created_at - timedelta(minutes=minutes)
+        max_messages = 5
+        seconds = await self.config.guild(guild).raider_detection_seconds()
+        x_minutes_ago = message.created_at - timedelta(seconds=seconds)
         recent = 0
 
         for i, m in enumerate(cache):
@@ -208,8 +208,7 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
             self.dispatch_event("member_remove", author, Action.Softban.value, reason)
         elif action == Action.NoAction:
             await self.send_notification(guild,
-                                        f"User is spamming messages ({recent} "
-                                        f"messages in {minutes} minutes).",
+                                        f"发送消息频率过高 ({seconds} 秒内 {recent} 条消息).",
                                         title=EMBED_TITLE,
                                         fields=EMBED_FIELDS,
                                         jump_to=message,
@@ -220,7 +219,14 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
             punish_role = guild.get_role(await self.config.guild(guild).punish_role())
             punish_message = await self.format_punish_message(author)
             if punish_role and not self.is_role_privileged(punish_role):
-                await author.add_roles(punish_role, reason="Defender: punish role assignation")
+                await author.add_roles(punish_role, reason="[自动]发送消息频率过高")
+                await self.send_notification(guild,
+                                        f"发送消息频率过高 ({seconds} 秒内 {recent} 条消息).",
+                                        title=EMBED_TITLE,
+                                        fields=EMBED_FIELDS,
+                                        jump_to=message,
+                                        no_repeat_for=timedelta(minutes=15),
+                                        ping=True, view=quick_action)
                 if punish_message:
                     await message.channel.send(punish_message)
             else:

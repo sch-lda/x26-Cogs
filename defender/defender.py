@@ -66,7 +66,7 @@ default_guild_settings = {
     "raider_detection_enabled": False,
     "raider_detection_rank": Rank.Rank3.value, # Users misconfigurating this module can fuck up a server so Rank 3 it is
     "raider_detection_messages": 15, # Take action on users that send more than X messages in...
-    "raider_detection_minutes": 1, # ...Y minutes
+    "raider_detection_seconds": 1, # ...Y seconds
     "raider_detection_action": Action.Ban.value,
     "raider_detection_wipe": 1, # If action is ban, wipe X days worth of messages
     "raider_detection_wdchecks": "",

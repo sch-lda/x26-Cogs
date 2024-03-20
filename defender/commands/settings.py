@@ -551,20 +551,20 @@ class Settings(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
 
     @raiderdetectiongroup.command(name="messages")
     async def raiderdetectiongroupmessages(self, ctx: commands.Context, messages: int):
-        """Sets messages (User posted X messages in Y minutes)"""
+        """Sets messages (User posted X messages in Y seconds)"""
         if messages < 8 or messages > 50:
             await ctx.send("Value must be between 8 and 50.")
             return
         await self.config.guild(ctx.guild).raider_detection_messages.set(messages)
         await ctx.tick()
 
-    @raiderdetectiongroup.command(name="minutes")
-    async def raiderdetectiongroupminutes(self, ctx: commands.Context, minutes: int):
-        """Sets minutes (User posted X messages in Y minutes)"""
-        if minutes < 1:
+    @raiderdetectiongroup.command(name="seconds")
+    async def raiderdetectiongroupseconds(self, ctx: commands.Context, seconds: int):
+        """Sets seconds (User posted X messages in Y seconds)"""
+        if seconds < 1:
             await ctx.send("Value must be 1 or higher.")
             return
-        await self.config.guild(ctx.guild).raider_detection_minutes.set(minutes)
+        await self.config.guild(ctx.guild).raider_detection_seconds.set(seconds)
         await ctx.tick()
 
     @raiderdetectiongroup.command(name="rank")

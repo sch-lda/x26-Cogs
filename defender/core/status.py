@@ -169,7 +169,7 @@ async def make_status(ctx, cog):
 
     rank = await cog.config.guild(guild).raider_detection_rank()
     messages = await cog.config.guild(guild).raider_detection_messages()
-    minutes = await cog.config.guild(guild).raider_detection_minutes()
+    seconds = await cog.config.guild(guild).raider_detection_seconds()
     action = Action(await cog.config.guild(guild).raider_detection_action())
     wipe = await cog.config.guild(guild).raider_detection_wipe()
     if action == Action.NoAction:
@@ -181,7 +181,7 @@ async def make_status(ctx, cog):
     msg = ("**Raider detection   🦹**\nThis auto-module is designed to counter raiders. It can detect large "
             "amounts of messages in a set time window and take action on the user.\n")
     msg += (f"It is set so that if a **Rank {rank}** user (or below) sends **{messages} messages** in "
-            f"**{minutes} minutes** I will {action}.\n")
+            f"**{seconds} seconds** I will {action}.\n")
     if action == Action.Ban and wipe:
         msg += f"The **ban** will also delete **{wipe} days** worth of messages.\n"
     msg += f"{WD_CHECKS.format(is_active(await cog.config.guild(guild).raider_detection_wdchecks()))}\n"
