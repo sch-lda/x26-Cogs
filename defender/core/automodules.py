@@ -240,17 +240,17 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
         else:
             raise ValueError("Invalid action for raider detection")
 
-        await self.create_modlog_case(
-            self.bot,
-            guild,
-            message.created_at,
-            action.value,
-            author,
-            guild.me,
-            "Message spammer",
-            until=None,
-            channel=None,
-        )
+        #await self.create_modlog_case(
+        #    self.bot,
+        #    guild,
+        #   message.created_at,
+        #  action.value,
+        # author,
+        #guild.me,
+        #    "Message spammer",
+        #    until=None,
+        #    channel=None,
+        #)
         past_messages = await self.make_message_log(author, guild=author.guild)
         log = "\n".join(past_messages[:40])
         f = discord.File(BytesIO(log.encode("utf-8")), f"{author.id}-log.txt")
