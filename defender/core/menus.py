@@ -77,11 +77,11 @@ class QASelect(discord.ui.Select):
     def __init__(self, target_id: int):
         super().__init__(custom_id=str(target_id), placeholder="Quick action")
         self.options = [
-            SelectOption(value=QAInteractions.Ban.value, label="Ban", emoji="🔨"),
-            SelectOption(value=QAInteractions.Kick.value, label="Kick", emoji="👢"),
-            SelectOption(value=QAInteractions.Softban.value, label="Softban", emoji="💨"),
-            SelectOption(value=QAInteractions.Punish.value, label="Punish", emoji="👊"),
-            SelectOption(value=QAInteractions.BanAndDelete24.value, label="Ban + 24h deletion", emoji="🔂"),
+            SelectOption(value=QAInteractions.Ban.value, label="封禁", emoji="🔨"),
+            SelectOption(value=QAInteractions.Kick.value, label="踢出", emoji="👢"),
+            SelectOption(value=QAInteractions.Softban.value, label="踢出并删除近一天的消息", emoji="💨"),
+            SelectOption(value=QAInteractions.Punish.value, label="禁言", emoji="👊"),
+            SelectOption(value=QAInteractions.BanAndDelete24.value, label="封禁并删除近一天的消息", emoji="🔂"),
         ]
 
     async def callback(self, inter: discord.Interaction):

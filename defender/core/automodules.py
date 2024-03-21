@@ -44,10 +44,10 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
     async def invite_filter(self, message):
         author = message.author
         guild = author.guild
-        EMBED_TITLE = "🔥📧 • Invite filter"
-        EMBED_FIELDS = [{"name": "Username", "value": f"`{author}`"},
-                        {"name": "ID", "value": f"`{author.id}`"},
-                        {"name": "Channel", "value": message.channel.mention}]
+        EMBED_TITLE = "🔥📧 •邀请链接过滤"
+        EMBED_FIELDS = [{"name": "用户名", "value": f"`{author}`"},
+                        {"name": "DiscordID", "value": f"`{author.id}`"},
+                        {"name": "频道", "value": message.channel.mention}]
 
         result = INVITE_URL_RE.findall(message.content)
 
