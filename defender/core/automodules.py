@@ -222,10 +222,15 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
             punish_message = await self.format_punish_message(author)
             if punish_role and not self.is_role_privileged(punish_role):
                 await author.add_roles(punish_role, reason="[自动]发送消息频率过高")
+
                 for i, m in enumerate(cache):
                     channel = message.guild.get_channel(m.channel_id)
-                    message = await channel.fetch_message(m.id)
-                    await message.delete()
+                    try:
+                        message = await channel.fetch_message(m.id)
+                        await message.delete()
+                    except (discord.NotFound, discord.Forbidden):
+                        log.info(f"未能获取或删除消息 {m.id} 在 {channel.name}")
+
                 if punish_message:
                     await message.channel.send(punish_message)
                 try:
@@ -251,6 +256,7 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
         #    until=None,
         #    channel=None,
         #)
+        
         past_messages = await self.make_message_log(author, guild=author.guild)
         log = "\n".join(past_messages[:40])
         f = discord.File(BytesIO(log.encode("utf-8")), f"message for {author.name}{author.id}.txt")
