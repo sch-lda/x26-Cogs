@@ -229,7 +229,7 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
                         message = await channel.fetch_message(m.id)
                         await message.delete()
                     except (discord.NotFound, discord.Forbidden):
-                        log.info(f"未能获取或删除消息 {m.id} 在 {channel.name}")
+                        pass
 
                 if punish_message:
                     await message.channel.send(punish_message)
