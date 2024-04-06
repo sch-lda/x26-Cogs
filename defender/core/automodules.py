@@ -221,8 +221,7 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
             punish_role = guild.get_role(await self.config.guild(guild).punish_role())
             punish_message = await self.format_punish_message(author)
             if punish_role and not self.is_role_privileged(punish_role):
-                # await author.add_roles(punish_role, reason="[自动]发送消息频率过高")
-                self.bot.invoke(self.bot.get_command("mute"), message, author, "10s", "发送消息频率过高")
+                await author.add_roles(punish_role, reason="[自动]发送消息频率过高")
 
                 for i, m in enumerate(cache):
                     channel = message.guild.get_channel(m.channel_id)
