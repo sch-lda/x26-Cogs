@@ -224,13 +224,16 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
             if punish_role and not self.is_role_privileged(punish_role):
                 # await author.add_roles(punish_role, reason="[自动]发送消息频率过高")
                 until = datetime.now(timezone.utc) + timedelta(hours=6)
-                await author.edit(timed_out_until=until, reason="[自动]发送消息频率过高")
+                try:
+                    await author.edit(timed_out_until=until, reason="[自动]发送消息频率过高")
+                except:
+                    pass
                 for i, m in enumerate(cache):
                     channel = message.guild.get_channel(m.channel_id)
                     try:
                         message = await channel.fetch_message(m.id)
                         await message.delete()
-                    except (discord.NotFound, discord.Forbidden):
+                    except:
                         pass
 
                 if punish_message:
@@ -238,7 +241,7 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
                 try:
                     await message.channel.send(f"{author.mention}在10s内发送了7条消息,被识别为潜在的广告机器人,已撤回+禁言6h+通知管理员.请等待人工审核.", delete_after=180)
                     await author.send(f"您在{guild.name}中发送消息频率过高,被识别为潜在的广告机器人,已撤回近期消息+禁言6小时+通知管理员.请等待管理员人工审核.若您多次发送消息的行为并不知情,则说明您可能被盗号了,请及时修改密码或联系Discord客服处理.若您已取得账号的控制权,请回复 我已排除盗号风险")
-                except discord.Forbidden:
+                except:
                     pass
             else:
                 self.send_to_monitor(guild, "[RaiderDetection] Failed to punish user. Is the punish role "
