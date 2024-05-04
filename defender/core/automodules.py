@@ -230,15 +230,17 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
                     pass
 
                 del_limite = 0
+                notfound_count = 0
                 for i, m in enumerate(cache):
                     del_limite += 1
-                    if del_limite >= 10:
+                    if del_limite >= 10 or notfound_count >= 2:
                         break
                     channel = message.guild.get_channel(m.channel_id)
                     try:
                         message = await channel.fetch_message(m.id)
                         await message.delete()
-                    except:
+                    except discord.NotFound:
+                        notfound_count += 1
                         pass
 
                 if punish_message:
