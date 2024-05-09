@@ -85,9 +85,6 @@ class MixinMeta(ABC):
     def send_to_monitor(self, guild: discord.Guild, entry: str):
         raise NotImplementedError()
 
-    @abstractmethod
-    async def send_announcements(self):
-        raise NotImplementedError()
 
     @abstractmethod
     async def inc_message_count(self, member: discord.Member):

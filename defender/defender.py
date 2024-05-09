@@ -134,9 +134,7 @@ class Defender(Commands, AutoModules, Events, commands.Cog, metaclass=CompositeM
         self.emergency_mode = {}
         self.loop.create_task(self.load_cache_settings())
         self.mc_task = self.loop.create_task(self.message_cache_cleaner())
-        self.wd_periodic_task = self.loop.create_task(self.wd_periodic_rules())
         self.monitor = defaultdict(lambda: Deque(maxlen=500))
-        self.wd_pool = Pool(maxtasksperchild=1000)
         self.quick_actions = defaultdict(lambda: dict())
 
     async def rank_user(self, member: discord.Member):
@@ -337,10 +335,7 @@ class Defender(Commands, AutoModules, Events, commands.Cog, metaclass=CompositeM
 
     def cog_unload(self):
         self.counter_task.cancel()
-        self.wd_periodic_task.cancel()
         self.mc_task.cancel()
-        self.wd_pool.close()
-        self.bot.loop.run_in_executor(None, self.wd_pool.join)
 
     async def callout_if_fake_admin(self, ctx):
         if ctx.invoked_subcommand is None:
