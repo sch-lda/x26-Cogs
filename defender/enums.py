@@ -49,7 +49,6 @@ class AutoModules(enum.Enum):
     RaiderDetection = "Raider detection"
     InviteFilter = "Invite filter"
     JoinMonitor = "Join monitor"
-    Warden = "Warden"
 
 class ManualModules(enum.Enum):
     Alert = "Alert"

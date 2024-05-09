@@ -300,7 +300,6 @@ async def make_status(ctx, cog):
     msg += "**enabled**.\n\n" if enabled else "**disabled**.\n\n"
 
     em = discord.Embed(color=discord.Colour.red(), description=msg)
-    em.set_footer(text=f"`{p}dset warden` `{p}def warden` `{p}dset commentanalysis` to configure.")
     em.set_author(name="Auto modules (2/2)")
 
     pages.append(em)

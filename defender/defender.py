@@ -26,8 +26,6 @@ from .core.automodules import AutoModules
 from .commands import Commands
 from .core.events import Events
 from .enums import Rank, Action, EmergencyModules, PerspectiveAttributes
-from .exceptions import InvalidRule
-from .core.announcements import get_announcements_text
 from .core.cache import CacheUser
 from .core.utils import utcnow, timestamp
 from .core import cache as df_cache
@@ -53,28 +51,23 @@ default_guild_settings = {
     "rank3_joined_days": 1, # Users that joined < X days ago are considered new users (rank 3)
     "rank3_min_messages": 50, # Messages threshold that users should reach to be no longer classified as rank 4
     "count_messages": True, # Count users' messages. If disabled, rank4 will be unobtainable
-    "announcements_sent": [],
     "invite_filter_enabled": False,
     "invite_filter_rank": Rank.Rank4.value,
     "invite_filter_action": Action.NoAction.value, # Type of action to take on users that posted filtered invites
     "invite_filter_exclude_own_invites": True, # Check against the server's own invites before taking action
     "invite_filter_delete_message": True, # Whether to delete the invite's message or not
-    "invite_filter_wdchecks": "",
     "raider_detection_enabled": False,
     "raider_detection_rank": Rank.Rank3.value, # Users misconfigurating this module can fuck up a server so Rank 3 it is
     "raider_detection_messages": 15, # Take action on users that send more than X messages in...
     "raider_detection_seconds": 1, # ...Y seconds
     "raider_detection_action": Action.Ban.value,
     "raider_detection_wipe": 1, # If action is ban, wipe X days worth of messages
-    "raider_detection_wdchecks": "",
     "join_monitor_enabled": False,
     "join_monitor_n_users": 10, # Alert staff if more than X users...
     "join_monitor_minutes": 5, # ... joined in the past Y minutes
     "join_monitor_v_level": 0, # Raise verification up to X on raids
     "join_monitor_susp_hours": 0, # Notify staff if new join is younger than X hours
     "join_monitor_susp_subs": [], # Staff members subscribed to suspicious join notifications
-    "join_monitor_wdchecks": "",
-    "wd_rules": {}, # Warden rules | I have to break the naming convention here due to config.py#L798
     "ca_enabled": False, # Comment analysis
     "ca_token": None, # CA token
     "ca_attributes": [PerspectiveAttributes.SevereToxicity.value], # Attributes to query
@@ -84,7 +77,6 @@ default_guild_settings = {
     "ca_reason": "Bad comment", # Mod-log reason
     "ca_wipe": 0, # If action is ban, wipe X days worth of messages
     "ca_delete_message": True, # Whether to delete the offending message
-    "ca_wdchecks": "",
     "alert_enabled": True, # Available to helper roles by default
     "silence_enabled": False, # This is a manual module. Enabled = Available to be used...
     "silence_rank": 0, # ... and as such, this default will be 0
@@ -107,10 +99,6 @@ default_member_settings = {
 default_owner_settings = {
     "cache_expiration" : 48, # Hours before a message will be removed from the cache
     "cache_cap": 3000, # Max messages to store for each user / channel
-    "wd_regex_allowed": False, # Allows the creation of Warden rules with user defined regex
-    "wd_periodic_allowed": True, # Allows the creation of periodic Warden rules
-    "wd_upload_max_size": 3, # Max size for Warden rule upload (in kilobytes)
-    "wd_regex_safety_checks": True, # Performance safety checks for user defined regex
 }
 
 class Defender(Commands, AutoModules, Events, commands.Cog, metaclass=CompositeMetaClass):

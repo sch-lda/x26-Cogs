@@ -21,8 +21,6 @@ from ..enums import Rank
 from ..core.status import make_status
 from ..core.cache import UserCacheConverter
 from ..core.utils import utcnow
-from ..exceptions import ExecutionError, InvalidRule
-from ..core.announcements import get_announcements_embed
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from redbot.core.utils.chat_formatting import error, pagify, box, inline, escape
@@ -293,14 +291,3 @@ class StaffTools(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
                                              title="Emergency mode", jump_to=ctx.message)
             else:
                 await ctx.send("Emergency mode is already off.")
-
-    @defender.command(name="updates")
-    async def defendererupdates(self, ctx: commands.Context):
-        """Shows all the past announcements of Defender"""
-        announcements = get_announcements_embed(only_recent=False)
-        if announcements:
-            announcements = list(announcements.values())
-            await menu(ctx, announcements, DEFAULT_CONTROLS)
-        else:
-            await ctx.send("Nothing to show.")
-

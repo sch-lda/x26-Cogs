@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from ..abc import MixinMeta, CompositeMetaClass
 from ..enums import Action, Rank, QAAction
 from ..core.utils import QUICK_ACTION_EMOJIS, utcnow
-from ..exceptions import ExecutionError, MisconfigurationError
+from ..exceptions import MisconfigurationError
 from . import cache as df_cache
 from redbot.core import commands
 from discord import MessageType
@@ -46,19 +46,13 @@ class Events(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
         if not await self.config.guild(guild).enabled():
             return
 
-        if message.nonce == "262626":
-            # This is a mock command from Warden and we don't want to process it
-            return
-
         if await self.config.guild(guild).count_messages():
             await self.inc_message_count(author)
 
         df_cache.add_message(message)
-        df_cache.maybe_store_msg_obj(message)
 
         is_staff = False
         expelled = False
-        wd_expelled = False
         rank = await self.rank_user(author)
 
         if rank == Rank.Rank1:
@@ -146,7 +140,6 @@ class Events(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
 
         is_staff = False
         expelled = False
-        wd_expelled = False
         rank = await self.rank_user(author)
 
         if rank == Rank.Rank1:
@@ -236,7 +229,7 @@ class Events(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
         if quick_action in (Action.Ban, Action.Softban, Action.Kick): # Expel = no more actions
             self.quick_actions[guild.id].pop(payload.message_id, None)
 
-        if user == target: # Safeguard for Warden integration
+        if user == target:
             self.send_to_monitor(guild, f"[QuickAction] Prevented user {user} from taking action on themselves. "
                                         "Was this deliberate?")
             return

@@ -37,7 +37,6 @@ MSG_EXPIRATION_TIME = 48 # Hours
 MSG_STORE_CAP = 3000
 _guild_dict = {"users": {}, "channels": {}}
 _message_cache = defaultdict(lambda: deepcopy(_guild_dict))
-_msg_obj = None # Warden use
 
 # We're gonna store *a lot* of messages in memory and we're gonna improve
 # performances by storing only a lite version of them
@@ -169,33 +168,3 @@ async def discard_messages_from_user(_id):
         for cid, store in _cache["channels"].items():
             _message_cache[guid]["channels"][cid] = deque([m for m in store if m.author_id != _id], maxlen=MSG_STORE_CAP)
         await asyncio.sleep(0)
-
-# This is a single message object that we store to mock commands in Warden
-def maybe_store_msg_obj(message: discord.Message):
-    global _msg_obj
-
-    if _msg_obj is not None:
-        return
-    msg = copy(message)
-    msg.nonce = "262626"
-    msg.author = None
-    msg.channel = None
-    msg.content = ""
-    msg.mentions = msg.role_mentions = msg.reactions = msg.embeds = msg.attachments = []
-    # We're wiping the cached properties here
-    # High breakage chance if d.py ever changes its internals
-    try:
-        for attr in msg._CACHED_SLOTS:
-            try:
-                delattr(msg, attr)
-            except AttributeError:
-                pass
-    except Exception as e:
-        return log.error("Failed to store the message object for issue-command use", exc_info=e)
-
-    _msg_obj = msg
-
-def get_msg_obj()->Optional[discord.Message]:
-    msg = copy(_msg_obj)
-    msg.id = time_snowflake(utcnow())
-    return msg

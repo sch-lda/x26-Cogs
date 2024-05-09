@@ -66,75 +66,6 @@ class Settings(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
         else:
             await ctx.send("Defender system disabled. All auto modules and manual modules are now non-operational.")
 
-    @dset.command(name="importfrom")
-    async def dsetimportfrom(self, ctx: commands.Context, server: GuildConverter):
-        """Import the configuration from another server
-
-        This is permitted only if the command issuer is admin in both servers"""
-        EMOJI = "✅"
-        other_guild = server
-        other_member = other_guild.get_member(ctx.author.id)
-        if other_member is None:
-            return await ctx.send("You are not in that server.")
-
-        if not await self.bot.is_admin(other_member):
-            return await ctx.send("You are not admin in that server.")
-
-        msg = await ctx.send("This will import all the Defender settings from that server. Role / channel "
-                             "specific settings will not carry over. Optionally Warden rules can also be ported over.\n"
-                             "Existing settings will be **lost**. React to proceed.")
-
-        def confirm(r, user):
-            return user == ctx.author and str(r.emoji) == EMOJI and r.message.id == msg.id
-
-        await msg.add_reaction(EMOJI)
-        try:
-            await ctx.bot.wait_for('reaction_add', check=confirm, timeout=15)
-        except asyncio.TimeoutError:
-            return await ctx.send("Import aborted.")
-
-        conf = await self.config.guild(other_guild).all()
-        to_copy = conf.copy()
-        to_copy.pop("enabled", None)
-        enabled = to_copy.pop("notify_channel", None)
-        to_copy.pop("punish_role", None)
-        to_copy.pop("notify_role", None)
-        to_copy.pop("trusted_roles", None)
-        to_copy.pop("helper_roles", None)
-        to_copy.pop("announcements_sent", None)
-        has_rules = bool(to_copy.pop("wd_rules", {}))
-
-        if not enabled:
-            return await ctx.send("That server doesn't have Defender configured. Import aborted.")
-
-        async with self.config.guild(ctx.guild).all() as guild_data:
-            guild_data.update(to_copy)
-
-        imported = 0
-        failed = 0
-        if has_rules:
-            msg = await ctx.send("I have imported the settings. Do you also want to import their "
-                                 "Warden rules? Any existing Warden rule with the same name will be "
-                                 "overwritten. React to confirm.")
-            def confirm(r, user):
-                return user == ctx.author and str(r.emoji) == EMOJI and r.message.id == msg.id
-
-            await msg.add_reaction(EMOJI)
-            try:
-                await ctx.bot.wait_for('reaction_add', check=confirm, timeout=15)
-            except asyncio.TimeoutError:
-                return await ctx.send("Warden rules importation aborted.")
-
-            to_add_raw = {}
-
-            async with self.config.guild(ctx.guild).wd_rules() as wd_rules:
-                wd_rules.update(to_add_raw)
-
-        imported_txt = "" if not imported else f" Imported {imported} rules. "
-        failed_txt = "" if not failed else f" Failed to import {failed} rules. "
-        await ctx.send(f"Configuration import completed successfully.{imported_txt}{failed_txt}"
-                       f"\nPlease check `{ctx.prefix}def status` for any remaining feature left to "
-                       "set up.")
 
     @generalgroup.command(name="trustedroles")
     async def generalgrouptrustedroles(self, ctx: commands.Context, *roles: discord.Role):
@@ -241,8 +172,6 @@ class Settings(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
                            f"Issue `{ctx.prefix}dset general reset yes` if you want to do this.")
             return
         await self.config.guild(ctx.guild).clear()
-        self.active_warden_rules.pop(ctx.guild.id, None)
-        self.invalid_warden_rules.pop(ctx.guild.id, None)
         await ctx.tick()
 
     @generalgroup.command(name="messagecacheexpire")
