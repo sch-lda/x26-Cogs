@@ -15,9 +15,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from defender.core.warden.rule import WardenRule
-from defender.core.warden.enums import ChecksKeys as WDChecksKeys
-from defender.core.warden import api as WardenAPI
 from ..abc import MixinMeta, CompositeMetaClass
 from ..enums import Action, Rank, PerspectiveAttributes as PAttr, EmergencyModules as EModules
 from redbot.core import commands
@@ -128,19 +125,7 @@ class Settings(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
             except asyncio.TimeoutError:
                 return await ctx.send("Warden rules importation aborted.")
 
-            other_rules = self.active_warden_rules.get(other_guild.id, {})
             to_add_raw = {}
-            for rule in other_rules.values():
-                new_rule = WardenRule()
-
-                try:
-                    await new_rule.parse(rule.raw_rule, self, author=ctx.author)
-                except Exception:
-                    failed += 1
-                else:
-                    self.active_warden_rules[ctx.guild.id][rule.name] = rule
-                    to_add_raw[new_rule.name] = new_rule.raw_rule
-                    imported += 1
 
             async with self.config.guild(ctx.guild).wd_rules() as wd_rules:
                 wd_rules.update(to_add_raw)
@@ -375,14 +360,6 @@ class Settings(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
         else:
             await ctx.send("I will not delete the message containing the invite.")
 
-    @invitefiltergroup.command(name="wdchecks")
-    async def invitefilterwdchecks(self, ctx: commands.Context, *, conditions: str=""):
-        """Implement advanced Warden based checks
-
-        Issuing this command with no arguments will show the current checks
-        Passing 'remove' will remove existing checks"""
-        await self.wd_check_manager(ctx, WDChecksKeys.InviteFilter, conditions)
-
     @dset.group(name="alert")
     @commands.admin()
     async def alertgroup(self, ctx: commands.Context):
@@ -525,14 +502,6 @@ class Settings(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
 
         await ctx.send("Select the verification level that will be set when a raid is detected", view=view)
 
-    @joinmonitorgroup.command(name="wdchecks")
-    async def joinmonitorwdchecks(self, ctx: commands.Context, *, conditions: str=""):
-        """Implement advanced Warden based checks
-
-        Issuing this command with no arguments will show the current checks
-        Passing 'remove' will remove existing checks"""
-        await self.wd_check_manager(ctx, WDChecksKeys.JoinMonitor, conditions)
-
     @dset.group(name="raiderdetection", aliases=["rd"])
     @commands.admin()
     async def raiderdetectiongroup(self, ctx: commands.Context):
@@ -604,84 +573,6 @@ class Settings(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
         await ctx.send(f"Value set. I will delete {days} days worth "
                        "of messages if the action is ban.")
 
-    @raiderdetectiongroup.command(name="wdchecks")
-    async def raiderdetectiongroupwdchecks(self, ctx: commands.Context, *, conditions: str=""):
-        """Implement advanced Warden based checks
-
-        Issuing this command with no arguments will show the current checks
-        Passing 'remove' will remove existing checks"""
-        await self.wd_check_manager(ctx, WDChecksKeys.RaiderDetection, conditions)
-
-    @dset.group(name="warden", aliases=["wd"])
-    @commands.admin()
-    async def wardenset(self, ctx: commands.Context):
-        """Warden auto module configuration
-
-        See [p]defender status for more information about this module"""
-
-    @wardenset.command(name="enable")
-    async def wardensetenable(self, ctx: commands.Context, on_or_off: bool):
-        """Toggles warden"""
-        await self.config.guild(ctx.guild).warden_enabled.set(on_or_off)
-        if on_or_off:
-            await ctx.send("Warden auto-module enabled. Existing rules are now active.")
-        else:
-            await ctx.send("Warden auto-module disabled. Existing rules will have no effect.")
-
-    @wardenset.command(name="regexallowed")
-    @commands.is_owner()
-    async def wardensetregex(self, ctx: commands.Context, on_or_off: bool):
-        """Toggles the ability to globally create rules with user defined regex"""
-        await self.config.wd_regex_allowed.set(on_or_off)
-        if on_or_off:
-            await ctx.send("All servers will now be able to create Warden rules with user defined regex. "
-                           "Keep in mind that badly designed regex can affect bot performances. Defender, "
-                           "other than actively trying to prevent or mitigate this issue, will also report "
-                           "such occurrences in the bot logs.")
-        else:
-            await ctx.send("The creation of Warden rules with user defined regex has been disabled for "
-                           "all servers. Existing rules with regex conditions will not work anymore.")
-
-    @wardenset.command(name="regexsafetychecks")
-    @commands.is_owner()
-    async def wardenregexsafetychecks(self, ctx: commands.Context, on_or_off: bool):
-        """Globally toggles the safety checks for user defined regex
-
-        These checks disable Warden rules with regex that takes too long to be evaluated. It is
-        recommended to keep this feature enabled."""
-        await self.config.wd_regex_safety_checks.set(on_or_off)
-        if on_or_off:
-            await ctx.send("Global safety checks for user defined regex are now enabled.")
-        else:
-            await ctx.send("Global safety checks for user defined regex are now disabled. Please note "
-                           "that badly designed regex can affect bot performances. Keep this in mind if "
-                           "at any point you experience high resource usage on the host.")
-
-    @wardenset.command(name="periodicallowed")
-    @commands.is_owner()
-    async def wardensetperiodic(self, ctx: commands.Context, on_or_off: bool):
-        """Toggles the ability to globally create periodic rules
-
-        Periodic rules are rules that can be scheduled to run against
-        an entire server userbase on an interval between 5 minutes and 24 hours
-        """
-        await self.config.wd_periodic_allowed.set(on_or_off)
-        if on_or_off:
-            await ctx.send("All servers will now be able to create periodic Warden rules.")
-        else:
-            await ctx.send("The creation of periodic Warden rules has been disabled for all servers. "
-                           "Existing periodic rules will not be run anymore.")
-
-    @wardenset.command(name="uploadmaxsize")
-    @commands.is_owner()
-    async def wardenuploadmaxsize(self, ctx: commands.Context, kilobytes: int):
-        """Sets the maximum allowed size for Warden rules upload
-
-        Reccommended size is 3KB"""
-        if kilobytes < 2 or kilobytes > 50:
-            return await ctx.send("Maximum size must be between 2 and 50KB.")
-        await self.config.wd_upload_max_size.set(kilobytes)
-        await ctx.send(f"Size set. I will not accept any rule bigger than {kilobytes}KB.")
 
     @dset.group(name="commentanalysis", aliases=["ca"])
     @commands.admin()
@@ -796,14 +687,6 @@ class Settings(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
             await ctx.send("I will delete the offending message.")
         else:
             await ctx.send("I will not delete the offending message.")
-
-    @caset.command(name="wdchecks")
-    async def casetwdchecks(self, ctx: commands.Context, *, conditions: str=""):
-        """Implement advanced Warden based checks
-
-        Issuing this command with no arguments will show the current checks
-        Passing 'remove' will remove existing checks"""
-        await self.wd_check_manager(ctx, WDChecksKeys.CommentAnalysis, conditions)
 
     @dset.group(name="voteout")
     @commands.admin()
@@ -922,32 +805,3 @@ class Settings(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
             await ctx.send("Value set. I will auto engage emergency mode after "
                           f"{minutes} minutes of staff inactivity following an alert.")
 
-    async def wd_check_manager(self, ctx, module, conditions):
-        if conditions == "":
-            raw_check = await WardenAPI.get_check(ctx.guild, module)
-            if raw_check is None:
-                return await ctx.send_help()
-
-            no_box = "```" in raw_check
-            if no_box:
-                raw_check = escape(raw_check, formatting=True)
-
-            rm_how_to = "Pass `remove` to this command to remove these checks.\n\n"
-
-            for p in pagify(raw_check, page_length=1900, escape_mass_mentions=False):
-                if no_box:
-                    await ctx.send(rm_how_to + p)
-                else:
-                    await ctx.send(rm_how_to + box(p, lang="yml"))
-                rm_how_to = ""
-        elif conditions.lower() == "remove":
-            await WardenAPI.remove_check(ctx.guild, module)
-            await ctx.tick()
-        else:
-            try:
-                await WardenAPI.set_check(ctx.guild, module, conditions, ctx.author)
-            except Exception as e:
-                await ctx.send(f"Error setting the checks: {e}")
-            else:
-                await ctx.send("Warden checks set. These additional checks will be evaluated "
-                               "*after* the module's standard checks (e.g. rank)")

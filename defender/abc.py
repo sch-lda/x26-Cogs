@@ -20,8 +20,6 @@ from typing import Optional
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 from .enums import Rank, EmergencyModules
-from .core.warden.enums import Event as WardenEvent
-from .core.warden.rule import WardenRule
 from .core.utils import QuickAction
 from typing import List, Dict
 import datetime
@@ -45,9 +43,6 @@ class MixinMeta(ABC):
         self.config: Config
         self.bot: Red
         self.emergency_mode: dict
-        self.active_warden_rules: dict
-        self.invalid_warden_rules: dict
-        self.warden_checks: dict
         self.joined_users: dict
         self.monitor: dict
         self.loop: asyncio.AbstractEventLoop
@@ -152,10 +147,6 @@ class MixinMeta(ABC):
 
     @abstractmethod
     async def callout_if_fake_admin(self, ctx: commands.Context):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def get_warden_rules_by_event(self, guild: discord.Guild, event: WardenEvent)->List[WardenRule]:
         raise NotImplementedError()
 
     @abstractmethod

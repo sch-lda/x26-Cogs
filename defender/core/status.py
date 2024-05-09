@@ -19,7 +19,6 @@ import discord
 from ..enums import Action, EmergencyModules
 
 DOCS_BASE_URL = "https://twentysix26.github.io/defender-docs"
-WD_CHECKS = f"[Warden checks]({DOCS_BASE_URL}/#warden-checks): " "**{}**"
 
 async def make_status(ctx, cog):
     def is_active(arg):
@@ -184,7 +183,6 @@ async def make_status(ctx, cog):
             f"**{seconds} seconds** I will {action}.\n")
     if action == Action.Ban and wipe:
         msg += f"The **ban** will also delete **{wipe} days** worth of messages.\n"
-    msg += f"{WD_CHECKS.format(is_active(await cog.config.guild(guild).raider_detection_wdchecks()))}\n"
     msg += "This module is currently "
     msg += "**enabled**.\n\n" if enabled else "**disabled**.\n\n"
 
@@ -213,7 +211,6 @@ async def make_status(ctx, cog):
     msg += ("**Invite filter   🔥📧**\nThis auto-module is designed to take care of advertisers. It can detect "
             f"a standard Discord invite and take action on the user.\nIt is set so that I will {action} "
             f"who is **Rank {rank}** or below. {action_msg} {oi_text}\n")
-    msg += f"{WD_CHECKS.format(is_active(await cog.config.guild(guild).invite_filter_wdchecks()))}\n"
     msg += "This module is currently "
     msg += "**enabled**.\n\n" if enabled else "**disabled**.\n\n"
 
@@ -238,7 +235,6 @@ async def make_status(ctx, cog):
         msg += f"I will also report any new user whose account is less than **{newhours} hours old**.\n"
     else:
         msg += "Newly created accounts notifications are **off**.\n"
-    msg += f"{WD_CHECKS.format(is_active(await cog.config.guild(guild).join_monitor_wdchecks()))}\n"
     msg += "This module is currently "
     msg += "**enabled**.\n\n" if enabled else "**disabled**.\n\n"
 
@@ -249,27 +245,8 @@ async def make_status(ctx, cog):
     pages.append(em)
 
     if d_enabled:
-        enabled = await cog.config.guild(guild).warden_enabled()
-    active_rules = len(cog.active_warden_rules[guild.id])
-    invalid_rules = len(cog.invalid_warden_rules[guild.id])
-    total_rules = active_rules + invalid_rules
-    warden_guide = f"{DOCS_BASE_URL}/warden/overview/"
-    invalid_text = ""
-    if invalid_rules:
-        invalid_text = f", **{invalid_rules}** of which are invalid"
+        enabled = False
 
-    wd_periodic = "allowed" if await cog.config.wd_periodic_allowed() else "not allowed"
-    wd_regex = "allowed" if await cog.config.wd_regex_allowed() else "not allowed"
-
-    msg = ("**Warden   👮**\nThis auto-module is extremely versatile. Thanks to a rich set of  "
-            "*events*, *conditions* and *actions* that you can combine Warden allows you to define "
-            "custom rules to counter any common pattern of bad behaviour that you notice in your "
-            "community.\nMessage filtering, assignation of roles to misbehaving users, "
-            "custom staff alerts are only a few examples of what you can accomplish "
-            f"with this powerful module.\nYou can learn more [here]({warden_guide}).\n")
-    msg += (f"The creation of periodic Warden rules is **{wd_periodic}**.\n")
-    msg += (f"The use of regex in Warden rules is **{wd_regex}**.\n")
-    msg += (f"There are a total of **{total_rules}** rules defined{invalid_text}.\n")
     msg += "This module is currently "
     msg += "**enabled**.\n\n" if enabled else "**disabled**.\n\n"
 
@@ -319,7 +296,6 @@ async def make_status(ctx, cog):
             f"{ca_action}{ca_del}. The offending user must be **Rank {ca_rank}** or below.\nI will take action "
             f"only if the **{ca_threshold}%** threshold is reached for any of the **{ca_attributes}** "
             f"attribute(s) that have been set.\n")
-    msg += f"{WD_CHECKS.format(is_active(await cog.config.guild(guild).ca_wdchecks()))}\n"
     msg += "This module is currently "
     msg += "**enabled**.\n\n" if enabled else "**disabled**.\n\n"
 

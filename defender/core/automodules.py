@@ -25,7 +25,6 @@ from ..enums import Action
 from ..core.menus import QAView
 from ..core import cache as df_cache
 from ..core.utils import get_external_invite, ACTIONS_VERBS, utcnow, timestamp
-from ..core.warden import heat
 from .utils import timestamp
 from io import BytesIO
 from collections import namedtuple, OrderedDict
@@ -308,9 +307,6 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
         lvl_msg = ""
         lvl = await self.config.guild(guild).join_monitor_v_level()
         if lvl > guild.verification_level.value:
-            if not heat.get_custom_heat(guild, "core-jm-lvl") == 0:
-                return False
-            heat.increase_custom_heat(guild, "core-jm-lvl", timedelta(minutes=1))
             try:
                 lvl = discord.VerificationLevel(lvl)
                 await guild.edit(verification_level=lvl)
