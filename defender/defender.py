@@ -68,15 +68,6 @@ default_guild_settings = {
     "join_monitor_v_level": 0, # Raise verification up to X on raids
     "join_monitor_susp_hours": 0, # Notify staff if new join is younger than X hours
     "join_monitor_susp_subs": [], # Staff members subscribed to suspicious join notifications
-    "ca_enabled": False, # Comment analysis
-    "ca_token": None, # CA token
-    "ca_attributes": [PerspectiveAttributes.SevereToxicity.value], # Attributes to query
-    "ca_threshold": 80, # Percentage for CA to trigger
-    "ca_action": Action.NoAction.value,
-    "ca_rank": Rank.Rank3.value,
-    "ca_reason": "Bad comment", # Mod-log reason
-    "ca_wipe": 0, # If action is ban, wipe X days worth of messages
-    "ca_delete_message": True, # Whether to delete the offending message
     "alert_enabled": True, # Available to helper roles by default
     "silence_enabled": False, # This is a manual module. Enabled = Available to be used...
     "silence_rank": 0, # ... and as such, this default will be 0

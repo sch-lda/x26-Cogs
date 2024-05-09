@@ -250,58 +250,6 @@ async def make_status(ctx, cog):
     msg += "This module is currently "
     msg += "**enabled**.\n\n" if enabled else "**disabled**.\n\n"
 
-    PERSPECTIVE_URL = "https://www.perspectiveapi.com/"
-    PERSPECTIVE_API_URL = "https://developers.perspectiveapi.com/s/docs-get-started"
-    ca_token = await cog.config.guild(guild).ca_token()
-    if ca_token:
-        ca_token = f"The API key is currently set: **{ca_token[:3]}...{ca_token[len(ca_token)-3:]}**"
-    else:
-        ca_token = f"The API key is **NOT** set. Get one [here]({PERSPECTIVE_API_URL})"
-
-    ca_action = Action(await cog.config.guild(guild).ca_action())
-    ca_wipe = await cog.config.guild(guild).ca_wipe()
-    ca_show_single_deletion = True
-    if ca_action == Action.Ban:
-        if ca_wipe:
-            ca_show_single_deletion = False
-            ca_action = f"**ban** the author and **delete {ca_wipe} days** worth of messages"
-        else:
-            ca_action = f"**ban** the author"
-    elif ca_action == Action.Softban:
-        ca_show_single_deletion = False
-        ca_action = f"**softban** the author"
-    elif ca_action == Action.NoAction:
-        ca_action = "**notify** the staff"
-    else:
-        ca_action = f"**{ca_action.value}** the author"
-
-    ca_message_delete = await cog.config.guild(guild).ca_delete_message()
-    ca_del = ""
-    if ca_show_single_deletion:
-        if ca_message_delete:
-            ca_del = " and **delete** it"
-        else:
-            ca_del = " and **not delete** it"
-
-    ca_rank = await cog.config.guild(guild).ca_rank()
-    ca_attributes = len(await cog.config.guild(guild).ca_attributes())
-    ca_threshold = await cog.config.guild(guild).ca_threshold()
-    enabled = await cog.config.guild(guild).ca_enabled()
-
-    msg += ("**Comment analysis    💬**\nThis automodule interfaces with Google's "
-            f"[Perspective API]({PERSPECTIVE_URL}) to analyze the messages in your server and "
-            "detect abusive content.\nIt supports a variety of languages and it is a powerful tool "
-            "for monitoring and prevention. Be mindful of *false positives*: context is not taken "
-            f"in consideration.\n{ca_token}.\nIt is set so that if I detect an abusive message I will "
-            f"{ca_action}{ca_del}. The offending user must be **Rank {ca_rank}** or below.\nI will take action "
-            f"only if the **{ca_threshold}%** threshold is reached for any of the **{ca_attributes}** "
-            f"attribute(s) that have been set.\n")
-    msg += "This module is currently "
-    msg += "**enabled**.\n\n" if enabled else "**disabled**.\n\n"
-
-    em = discord.Embed(color=discord.Colour.red(), description=msg)
-    em.set_author(name="Auto modules (2/2)")
-
     pages.append(em)
 
     if d_enabled:
