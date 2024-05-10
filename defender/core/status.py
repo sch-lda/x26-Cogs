@@ -250,8 +250,6 @@ async def make_status(ctx, cog):
     msg += "This module is currently "
     msg += "**enabled**.\n\n" if enabled else "**disabled**.\n\n"
 
-    pages.append(em)
-
     if d_enabled:
         enabled = await cog.config.guild(guild).alert_enabled()
     em_modules = await cog.config.guild(guild).emergency_modules()
