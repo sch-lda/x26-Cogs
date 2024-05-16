@@ -27,7 +27,7 @@ from ..core import cache as df_cache
 from ..core.utils import get_external_invite, ACTIONS_VERBS, utcnow, timestamp
 from .utils import timestamp
 from io import BytesIO
-from collections import namedtuple, OrderedDict
+from collections import namedtuple, OrderedDict, defaultdict, deque
 from datetime import timedelta
 import contextlib
 import discord
@@ -190,6 +190,15 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
 
         if recent != max_messages:
             return
+        
+        mod_cache_lock = self.def_mod_lock.get(guild.id, None)
+        if mod_cache_lock is None:
+            mod_cache_lock = self.cache_mod[guild.id] = defaultdict(lambda: deque(maxlen=6))
+        modmsgs = mod_cache_lock[message.author]
+        if len(modmsgs) > 0:
+            log.info(f"限速锁定未解除锁定 {len(modmsgs)}")
+            return False
+        mod_cache_lock[message.author].append("locked")
 
         quick_action =  QAView(self, author.id, "Message spammer")
         action = Action(await self.config.guild(guild).raider_detection_action())
@@ -267,7 +276,8 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
         #    until=None,
         #    channel=None,
         #)
-        
+        mod_cache_lock[author].clear()
+
         past_messages = await self.make_message_log(author, guild=author.guild)
         log = "\n".join(past_messages[:40])
         f = discord.File(BytesIO(log.encode("utf-8")), f"message for {author.name}{author.id}.txt")

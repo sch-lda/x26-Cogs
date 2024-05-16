@@ -104,6 +104,7 @@ class Defender(Commands, AutoModules, Events, commands.Cog, metaclass=CompositeM
         self.config.register_member(**default_member_settings)
         self.config.register_global(**default_owner_settings)
         self.joined_users = {}
+        self.def_mod_lock = {}
         self.last_raid_alert = {}
         # Part of rank4's logic
         self.message_counter = defaultdict(lambda: Counter())
