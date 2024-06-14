@@ -55,6 +55,7 @@ class MixinMeta(ABC):
         self.monitor: dict
         self.loop: asyncio.AbstractEventLoop
         self.quick_actions: Dict[int, Dict[int, QuickAction]]
+        self.def_mod_lock: dict
 
     @abstractmethod
     async def rank_user(self, member: discord.Member) -> Rank:
