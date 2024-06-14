@@ -196,7 +196,7 @@ class AutoModules(MixinMeta, metaclass=CompositeMetaClass): # type: ignore
             mod_cache_lock = self.def_mod_lock[guild.id] = defaultdict(lambda: deque(maxlen=6))
         modmsgs = mod_cache_lock[message.author]
         if len(modmsgs) > 0:
-            log.info(f"限速锁定未解除锁定 {len(modmsgs)}")
+            # log.info(f"限速锁定未解除锁定 {len(modmsgs)}")
             return False
         mod_cache_lock[message.author].append("locked")
 
