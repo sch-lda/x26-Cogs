@@ -99,7 +99,7 @@ class StaffTools(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
         cache = df_cache.get_user_messages(user)
         count = 0
         for i, m in enumerate(cache):
-            if count > n:
+            if count >= n:
                 break
             channel = ctx.guild.get_channel(m.channel_id)
             try:
