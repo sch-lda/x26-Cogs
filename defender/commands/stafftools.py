@@ -42,6 +42,7 @@ import fnmatch
 import discord
 import datetime
 import tarfile
+from ..core import cache as df_cache
 
 log = logging.getLogger("red.x26cogs.defender")
 
@@ -89,6 +90,27 @@ class StaffTools(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
     @defender.group(name="messages", aliases=["msg"])
     async def defmessagesgroup(self, ctx: commands.Context):
         """Access recorded messages of users / channels"""
+
+
+    @defender.command(name="massdel", aliases=["massrm"])
+    @commands.admin()
+    async def massrm(self, ctx: commands.Context, user: UserCacheConverter, n: int):
+        """移除用户的最近n条消息"""
+        cache = df_cache.get_user_messages(user)
+        count = 0
+        for i, m in enumerate(cache):
+            if count > n:
+                break
+            channel = ctx.guild.get_channel(m.channel_id)
+            try:
+                message = await channel.fetch_message(m.id)
+                if message is not None:
+                    count += 1
+                    await message.delete()
+            except discord.NotFound:
+                pass
+
+        await ctx.send(f"已删除{count}条消息")
 
     @defmessagesgroup.command(name="user")
     async def defmessagesgroupuser(self, ctx: commands.Context, user: UserCacheConverter):
