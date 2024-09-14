@@ -101,14 +101,22 @@ class StaffTools(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
         for i, m in enumerate(cache):
             if count >= n:
                 break
-            channel = ctx.guild.get_channel(m.channel_id)
+
+
             try:
+                channel = ctx.guild.get_channel_or_thread(m.channel_id)
+
+                if channel.type == discord.ChannelType.forum:
+                    thread = await channel.fetch_thread()
+                    if thread is not None:
+                        channel = thread
+                
                 message = await channel.fetch_message(m.id)
                 if message is not None:
                     count += 1
                     await message.delete()
-            except discord.NotFound:
-                pass
+            except Exception as e:
+                log.error(f"Failed to delete message {m.id} in channel {m.channel_id}", exc_info=e)
 
         await ctx.send(f"已删除{count}条消息")
 
