@@ -656,7 +656,8 @@ class Defender(Commands, AutoModules, Events, commands.Cog, metaclass=CompositeM
         channel=None,
         last_known_username=None,
     ):
-        if action_type == Action.NoAction.value:
+
+        if action_type in (Action.NoAction.value, Action.Punish.value, Action.Timeout.value):
             return
 
         mod_id = moderator.id if moderator else "none"
