@@ -59,6 +59,9 @@ async def get_external_invite(guild: discord.Guild, invites: List[Tuple]):
         own_invites.append(invite.code)
 
     for invite in invites:
+        # Remove query parameters if any
+        # The invite url might be an event url
+        invite = invite.split("?", 1)[0]
         if invite[1] == vanity_url:
             continue
         for own_invite in own_invites:
