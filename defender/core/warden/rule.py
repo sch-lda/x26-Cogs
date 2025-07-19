@@ -1131,7 +1131,7 @@ class WardenRule:
             reason = f"Softbanned by Warden rule '{self.name}'"
             await guild.ban(user, delete_message_days=1, reason=reason)
             await guild.unban(user)
-            runtime.last_expel_action = Action.Softban
+            runtime.last_expel_action = ModAction.Softban
             cog.dispatch_event("member_remove", user, ModAction.Softban.value, reason)
 
         @processor(Action.PunishUser)
