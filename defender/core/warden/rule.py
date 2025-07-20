@@ -449,7 +449,6 @@ class WardenRule:
         errors = exception.errors(include_url=False, include_input=False)
         message = f"{len(errors)} validation error(s) for {statement.value}\n"
         for error in errors:
-            log.info(error)
             loc = [str(e) for e in error["loc"]]
             message += f"{' -> '.join(loc)}\n"
             message += f"  {error['msg']} ({error['type']})\n"
