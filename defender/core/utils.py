@@ -47,6 +47,7 @@ QuickAction = namedtuple("QuickAction", ("target", "reason"))
 
 log = logging.getLogger("red.x26cogs.defender")
 
+
 async def get_external_invite(guild: discord.Guild, invites: List[Tuple]):
     if not guild.me.guild_permissions.manage_guild:
         raise MisconfigurationError("I need 'manage guild' permissions to fetch this server's invites.")

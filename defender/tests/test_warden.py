@@ -172,7 +172,7 @@ async def test_rule_parsing():
         await WardenRule().parse(rl.INVALID_MIXED_RULE_CONDITION, cog=None)
     with pytest.raises(InvalidRule, match=r".*Statement `delete-user-message` not allowed*"):
         await WardenRule().parse(rl.INVALID_MIXED_RULE_ACTION, cog=None)
-    with pytest.raises(InvalidRule, match=r".*too many arguments*"):
+    with pytest.raises(InvalidRule, match=r".*Extra inputs are not permitted*"):
         await WardenRule().parse(rl.INVALID_TOO_MANY_ARGS, cog=None)
     with pytest.raises(InvalidRule, match=r".*Input should be less than*"):
         await WardenRule().parse(rl.OOB_USER_HEATPOINTS, cog=None)
