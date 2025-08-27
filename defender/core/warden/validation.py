@@ -26,6 +26,7 @@ from pydantic import (
     model_validator as pydantic_model_validator,
 )
 from pydantic import conint, conlist, ValidationError, GetCoreSchemaHandler
+from pydantic_core import InitErrorDetails
 from functools import partial
 from typing_extensions import Any
 from datetime import timedelta, datetime
@@ -825,7 +826,10 @@ def model_validator(
     if validator._single_value is False:
         if isinstance(parameter, list):
             if len(parameter) > len(validator._short_form):
-                raise ValidationError.from_exception_data("Short form: too many arguments", [])
+                raise ValidationError.from_exception_data(
+                    "Short form: too many arguments",
+                    [InitErrorDetails(type="extra_forbidden", loc=("value (short form)",))],
+                )
             params = parameter
         else:
             params = (parameter,)

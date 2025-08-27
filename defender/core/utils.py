@@ -20,6 +20,7 @@ from ..enums import Action, QAAction
 from ..exceptions import MisconfigurationError
 from collections import namedtuple
 import datetime
+import logging
 import discord
 
 ACTIONS_VERBS = {
@@ -44,6 +45,8 @@ QUICK_ACTION_EMOJIS = {
 
 QuickAction = namedtuple("QuickAction", ("target", "reason"))
 
+log = logging.getLogger("red.x26cogs.defender")
+
 
 async def get_external_invite(guild: discord.Guild, invites: List[Tuple]):
     if not guild.me.guild_permissions.manage_guild:
@@ -59,13 +62,16 @@ async def get_external_invite(guild: discord.Guild, invites: List[Tuple]):
         own_invites.append(invite.code)
 
     for invite in invites:
-        if invite[1] == vanity_url:
+        # Remove query parameters if any
+        # The invite url might be an event url
+        invite = invite[1].split("?", 1)[0]
+        if invite == vanity_url:
             continue
         for own_invite in own_invites:
-            if invite[1] == own_invite:
+            if invite == own_invite:
                 break
         else:
-            return invite[1]
+            return invite
 
     return None
 

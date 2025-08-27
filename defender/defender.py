@@ -121,7 +121,7 @@ default_owner_settings = {
 class Defender(Commands, AutoModules, Events, commands.Cog, metaclass=CompositeMetaClass):
     """Security tools to protect communities"""
 
-    __version__ = "v2.1.1"
+    __version__ = "2.1.2"
 
     def __init__(self, bot):
         self.bot = bot
@@ -655,7 +655,8 @@ class Defender(Commands, AutoModules, Events, commands.Cog, metaclass=CompositeM
         channel=None,
         last_known_username=None,
     ):
-        if action_type == Action.NoAction.value:
+
+        if action_type in (Action.NoAction.value, Action.Punish.value, Action.Timeout.value):
             return
 
         mod_id = moderator.id if moderator else "none"

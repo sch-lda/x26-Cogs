@@ -419,7 +419,7 @@ class WardenRule:
                         outer_block=ConditionalActionBlock,
                     )
             except ValidationError as e:
-                raise InvalidRule(f"Statement `{enum.value}` invalid:\n{box(str(e))}")
+                raise InvalidRule(f"Statement `{enum.value}` invalid:\n{box(self.build_pydantic_error(e, enum))}")
 
             if model and author:
                 try:
@@ -444,6 +444,20 @@ class WardenRule:
             raise InvalidRule("Empty block.")
 
         return tree
+
+    def build_pydantic_error(self, exception, statement):
+        errors = exception.errors(include_url=False, include_input=False)
+        message = f"{len(errors)} validation error(s) for {statement.value}\n"
+        for error in errors:
+            loc = [str(e) for e in error["loc"]]
+            message += f"{' -> '.join(loc)}\n"
+            message += f"  {error['msg']} ({error['type']})\n"
+
+        if len(message) > 2000:
+            message = message[:1850]
+            message += "\n\n(Truncated, error message too long)"
+
+        return message
 
     async def eval_tree(
         self,
@@ -1131,7 +1145,7 @@ class WardenRule:
             reason = f"Softbanned by Warden rule '{self.name}'"
             await guild.ban(user, delete_message_days=1, reason=reason)
             await guild.unban(user)
-            runtime.last_expel_action = Action.Softban
+            runtime.last_expel_action = ModAction.Softban
             cog.dispatch_event("member_remove", user, ModAction.Softban.value, reason)
 
         @processor(Action.PunishUser)
