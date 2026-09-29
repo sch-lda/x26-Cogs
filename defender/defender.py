@@ -26,15 +26,11 @@ from .core.automodules import AutoModules
 from .commands import Commands
 from .core.events import Events
 from .enums import Rank, Action, EmergencyModules, PerspectiveAttributes
-from .exceptions import InvalidRule
-from .core.warden.rule import WardenRule
-from .core.warden.enums import Event as WardenEvent
-from .core.warden import heat, api as WardenAPI
+from .core import heat
 from .core.announcements import get_announcements_text
 from .core.cache import CacheUser
 from .core.utils import utcnow, timestamp
 from .core import cache as df_cache
-from multiprocessing.pool import Pool
 from zlib import crc32
 from string import Template
 from discord import ui
@@ -62,23 +58,18 @@ default_guild_settings = {
     "invite_filter_action": Action.NoAction.value,  # Type of action to take on users that posted filtered invites
     "invite_filter_exclude_own_invites": True,  # Check against the server's own invites before taking action
     "invite_filter_delete_message": True,  # Whether to delete the invite's message or not
-    "invite_filter_wdchecks": "",
     "raider_detection_enabled": False,
     "raider_detection_rank": Rank.Rank3.value,  # Users misconfigurating this module can fuck up a server so Rank 3 it is
     "raider_detection_messages": 15,  # Take action on users that send more than X messages in...
     "raider_detection_seconds": 1, # ...Y seconds
     "raider_detection_action": Action.Ban.value,
     "raider_detection_wipe": 1,  # If action is ban, wipe X days worth of messages
-    "raider_detection_wdchecks": "",
     "join_monitor_enabled": False,
     "join_monitor_n_users": 10,  # Alert staff if more than X users...
     "join_monitor_minutes": 5,  # ... joined in the past Y minutes
     "join_monitor_v_level": 0,  # Raise verification up to X on raids
     "join_monitor_susp_hours": 0,  # Notify staff if new join is younger than X hours
     "join_monitor_susp_subs": [],  # Staff members subscribed to suspicious join notifications
-    "join_monitor_wdchecks": "",
-    "warden_enabled": True,
-    "wd_rules": {},  # Warden rules | I have to break the naming convention here due to config.py#L798
     "ca_enabled": False,  # Comment analysis
     "ca_token": None,  # CA token
     "ca_attributes": [PerspectiveAttributes.SevereToxicity.value],  # Attributes to query
@@ -88,7 +79,6 @@ default_guild_settings = {
     "ca_reason": "Bad comment",  # Mod-log reason
     "ca_wipe": 0,  # If action is ban, wipe X days worth of messages
     "ca_delete_message": True,  # Whether to delete the offending message
-    "ca_wdchecks": "",
     "alert_enabled": True,  # Available to helper roles by default
     "silence_enabled": False,  # This is a manual module. Enabled = Available to be used...
     "silence_rank": 0,  # ... and as such, this default will be 0
@@ -111,10 +101,6 @@ default_member_settings = {
 default_owner_settings = {
     "cache_expiration": 48,  # Hours before a message will be removed from the cache
     "cache_cap": 3000,  # Max messages to store for each user / channel
-    "wd_regex_allowed": False,  # Allows the creation of Warden rules with user defined regex
-    "wd_periodic_allowed": True,  # Allows the creation of periodic Warden rules
-    "wd_upload_max_size": 3,  # Max size for Warden rule upload (in kilobytes)
-    "wd_regex_safety_checks": True,  # Performance safety checks for user defined regex
 }
 
 
@@ -125,7 +111,6 @@ class Defender(Commands, AutoModules, Events, commands.Cog, metaclass=CompositeM
 
     def __init__(self, bot):
         self.bot = bot
-        WardenAPI.init_api(self)
         self.config = Config.get_conf(self, 262_626, force_registration=True)
         self.config.register_guild(**default_guild_settings)
         self.config.register_member(**default_member_settings)
@@ -139,16 +124,10 @@ class Defender(Commands, AutoModules, Events, commands.Cog, metaclass=CompositeM
         self.counter_task = self.loop.create_task(self.persist_counter())
         self.staff_activity = {}
         self.emergency_mode = {}
-        self.active_warden_rules = defaultdict(lambda: dict())
-        self.invalid_warden_rules = defaultdict(lambda: dict())
-        self.warden_checks = defaultdict(lambda: dict())
-        self.loop.create_task(self.load_warden_rules())
         self.loop.create_task(self.send_announcements())
         self.loop.create_task(self.load_cache_settings())
         self.mc_task = self.loop.create_task(self.message_cache_cleaner())
-        self.wd_periodic_task = self.loop.create_task(self.wd_periodic_rules())
         self.monitor = defaultdict(lambda: Deque(maxlen=500))
-        self.wd_pool = Pool(maxtasksperchild=1000)
         self.quick_actions = defaultdict(lambda: dict())
 
     async def rank_user(self, member: discord.Member):
@@ -345,94 +324,6 @@ class Defender(Commands, AutoModules, Events, commands.Cog, metaclass=CompositeM
         except asyncio.CancelledError:
             pass
 
-    async def wd_periodic_rules(self):
-        try:
-            await self.bot.wait_until_red_ready()
-            while True:
-                await asyncio.sleep(60)
-                if await self.config.wd_periodic_allowed():
-                    await self.spin_wd_periodic_rules()
-        except asyncio.CancelledError:
-            pass
-        except Exception as e:
-            log.error(f"Defender's scheduler for Warden periodic rules errored: {e}")
-
-    async def spin_wd_periodic_rules(self):
-        all_guild_rules = self.active_warden_rules.copy()
-        tasks = []
-
-        for guid in all_guild_rules.keys():
-            guild = self.bot.get_guild(guid)
-            if guild is None:
-                continue
-            if await self.bot.cog_disabled_in_guild(self, guild):  # type: ignore
-                continue
-
-            rules = self.get_warden_rules_by_event(guild, WardenEvent.Periodic)
-
-            if not rules:
-                continue
-
-            if not await self.config.guild(guild).enabled():
-                continue
-
-            if not await self.config.guild(guild).warden_enabled():
-                continue
-
-            tasks.append(self.exec_wd_period_rules(guild, rules))
-
-        if tasks:
-            await asyncio.gather(*tasks)
-
-    async def exec_wd_period_rules(self, guild, rules):
-        for rule in rules:
-            if not rule.next_run <= utcnow() or rule.run_every is None:
-                continue
-            async for member in AsyncIter(guild.members, steps=2):
-                if member.bot:
-                    continue
-                if member.joined_at is None:
-                    continue
-                rank = await self.rank_user(member)
-                if await rule.satisfies_conditions(cog=self, rank=rank, guild=member.guild, user=member):
-                    try:
-                        await rule.do_actions(cog=self, guild=member.guild, user=member)
-                    except Exception as e:
-                        self.send_to_monitor(
-                            guild, f"[Warden] Rule {rule.name} " f"({rule.last_action.value}) - {str(e)}"
-                        )
-            rule.next_run = utcnow() + rule.run_every
-
-    async def load_warden_rules(self):
-        rules_to_load = defaultdict()
-        guilds = self.config._get_base_group(self.config.GUILD)
-        async with guilds.all() as all_guilds:
-            for guid, guild_data in all_guilds.items():
-                if "wd_rules" in guild_data:
-                    if guild_data["wd_rules"]:
-                        rules_to_load[guid] = guild_data["wd_rules"].copy()
-
-        for guid, rules in rules_to_load.items():
-            for rule in rules.values():
-                new_rule = WardenRule()
-                # If the rule ends up not even having a name some extreme level of fuckery is going on
-                # At that point we might as well pretend it doesn't exist at config level
-                try:
-                    await new_rule.parse(rule, self)
-                except InvalidRule as e:
-                    if new_rule.name is not None:
-                        self.invalid_warden_rules[int(guid)][new_rule.name] = new_rule  # type: ignore
-                    else:
-                        log.error("Warden - rule did not reach name " "parsing during cog load", exc_info=e)
-                except Exception as e:
-                    if new_rule.name is not None:
-                        self.invalid_warden_rules[int(guid)][new_rule.name] = new_rule  # type: ignore
-                    log.error("Warden - unexpected error during cog load rule parsing", exc_info=e)
-                else:
-                    self.active_warden_rules[int(guid)][new_rule.name] = new_rule
-
-        await WardenAPI.load_modules_checks()
-
     async def load_cache_settings(self):
         df_cache.MSG_STORE_CAP = await self.config.cache_cap()
         df_cache.MSG_EXPIRATION_TIME = await self.config.cache_expiration()
@@ -479,10 +370,7 @@ class Defender(Commands, AutoModules, Events, commands.Cog, metaclass=CompositeM
 
     def cog_unload(self):
         self.counter_task.cancel()
-        self.wd_periodic_task.cancel()
         self.mc_task.cancel()
-        self.wd_pool.close()
-        self.bot.loop.run_in_executor(None, self.wd_pool.join)
 
     async def callout_if_fake_admin(self, ctx):
         if ctx.invoked_subcommand is None:
@@ -616,11 +504,6 @@ class Defender(Commands, AutoModules, Events, commands.Cog, metaclass=CompositeM
             return role >= issuers_top_role
         else:
             return False
-
-    def get_warden_rules_by_event(self, guild: discord.Guild, event: WardenEvent) -> List[WardenRule]:
-        rules = self.active_warden_rules.get(guild.id, {}).values()
-        rules = [r for r in rules if event in r.events]
-        return sorted(rules, key=lambda k: k.priority)
 
     async def format_punish_message(self, member: discord.Member):
         text = await self.config.guild(member.guild).punish_message()
