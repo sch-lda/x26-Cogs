@@ -29,7 +29,7 @@ from redbot.core import commands
 from io import BytesIO
 from inspect import cleandoc
 from typing import Union
-import emoji, regex, yaml, sys, rapidfuzz  # Debug info purpose
+import sys
 import logging
 import fnmatch
 import discord
@@ -360,10 +360,6 @@ class StaffTools(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
              Defender {self.__version__}
             -- Deps --
              python {py_ver.major}.{py_ver.minor}.{py_ver.micro}
-             emoji {emoji.__version__}
-             pyyaml {yaml.__version__}
-             regex {regex.__version__}
-             rapidfuzz {rapidfuzz.__version__}
             -- General settings --
              Notif channel set: {notif_channel_set}
              Notif role set: {notify_role_set}
@@ -374,7 +370,6 @@ class StaffTools(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
              IF: {await conf.invite_filter_enabled()}
              RD: {await conf.raider_detection_enabled()}
              JM: {await conf.join_monitor_enabled()}
-             CA: {await conf.ca_enabled()}
              Alert: {await conf.alert_enabled()}
              Vaporize: {await conf.vaporize_enabled()}
              Silence: {await conf.silence_enabled()}

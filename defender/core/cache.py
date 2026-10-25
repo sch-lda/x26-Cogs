@@ -22,7 +22,7 @@ from discord.ext.commands.errors import BadArgument
 from discord.ext.commands import IDConverter
 from redbot.core.utils import AsyncIter
 from ..core.utils import utcnow
-import regex as re
+import re
 import discord
 import logging
 import asyncio

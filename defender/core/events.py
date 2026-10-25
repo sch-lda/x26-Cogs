@@ -24,7 +24,6 @@ from redbot.core import commands
 from discord import MessageType
 import discord
 import logging
-import asyncio
 
 ALLOWED_MESSAGE_TYPES = (MessageType.default, MessageType.reply)
 
@@ -105,23 +104,6 @@ class Events(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
                 except:
                     pass
 
-        ca_enabled = await self.config.guild(guild).ca_enabled()
-
-        if ca_enabled and not is_staff:
-            rank_ca = await self.config.guild(guild).ca_rank()
-            if rank_ca and rank >= rank_ca:
-                try:
-                    await self.comment_analysis(message)
-                except asyncio.TimeoutError:
-                    self.send_to_monitor(guild, "[CommentAnalysis] Failed to query the API: timeout.")
-                except discord.Forbidden as e:
-                    self.send_to_monitor(
-                        guild,
-                        "[CommentAnalysis] Failed to take action on " f"user {author.id}. Please check my permissions.",
-                    )
-                except Exception as e:
-                    log.error("Unexpected error in CommentAnalysis", exc_info=e)
-
     @commands.Cog.listener()
     async def on_message_edit(self, message_before: discord.Message, message: discord.Message):
         author = message.author
@@ -165,22 +147,6 @@ class Events(MixinMeta, metaclass=CompositeMetaClass):  # type: ignore
                     self.send_to_monitor(guild, f"[InviteFilter] {e}")
                 except Exception as e:
                     log.warning("Unexpected error in InviteFilter", exc_info=e)
-
-        ca_enabled = await self.config.guild(guild).ca_enabled()
-        if ca_enabled and not is_staff:
-            rank_ca = await self.config.guild(guild).ca_rank()
-            if rank_ca and rank >= rank_ca:
-                try:
-                    await self.comment_analysis(message)
-                except asyncio.TimeoutError:
-                    self.send_to_monitor(guild, "[CommentAnalysis] Failed to query the API: timeout.")
-                except discord.Forbidden as e:
-                    self.send_to_monitor(
-                        guild,
-                        "[CommentAnalysis] Failed to take action on " f"user {author.id}. Please check my permissions.",
-                    )
-                except Exception as e:
-                    log.error("Unexpected error in CommentAnalysis", exc_info=e)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):

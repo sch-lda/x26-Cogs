@@ -23,17 +23,7 @@ FOOTER_TEXT = "\n\n*- Twentysix, creator of Defender*"
 REPO_LINK = "https://github.com/Twentysix26/x26-Cogs"
 SOCIALS = "\n\n[`x26.it`](https://x26.it) - [`Support me!`](https://www.patreon.com/Twentysix26)"
 TAG = FOOTER_TEXT + SOCIALS
-CA_ANNOUNCEMENT = (
-    "Hello, a new auto-module is available: **Comment analysis**.\nThis auto-module leverages Google's "
-    "[Perspective API](https://www.perspectiveapi.com/) to detect all kinds of abusive messages, turning Defender "
-    "in an even smarter tool for monitoring and prevention.\n\nThis update also brings you some new "
-    "more consistent notifications for every module.\n"
-    "To finish up there is now the possibility to assign a *punishing role* through the automodules: "
-    "this is convenient if you want to prevent an offending user from sending messages instead of just expelling "
-    "them. As usual, `[p]def status` will guide you through the setup.\nEnjoy!"
-)
-
-ANNOUNCEMENTS = {1_625_135_507: CA_ANNOUNCEMENT}
+ANNOUNCEMENTS = {}
 
 
 def _make_announcement_embed(content):
